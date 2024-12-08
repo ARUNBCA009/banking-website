@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        .empty {
+            text-align: center;
+            color: #888;
+            margin-top: 20px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .success {
+            color: green;
+            text-align: center;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+
+        
+        nav {
+            position: absolute;
+            top: 10px; 
+            right: 10px; 
+        }
+        
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 1rem; 
+        }
+        
+        nav ul li {
+            display: inline;
+        }
+        
+        nav ul li a {
+            text-decoration: none;
+            color: color(srgb red green blue); 
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 4px; 
+            transition: background 0.3s ease;
+        }
+        
+        nav ul li a:hover {
+            background-color: #575757; 
+            color: #fff;
+        }
+        
+   </style>
+</head>
+<nav>
+    <ul>
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="create.html">CREATE</a></li>
+        <li><a href="withdraw.html">WITHDRAW</a></li>
+        <li><a href="deposit.html">DEPOSIT</a></li>
+        <li><a href="data.html">DETAILS</a></li>
+    </ul>
+</nav>
+<body>
+    <div class="container">
+        <h1>Transaction History</h1>
+        
+        <div class="form-section">
+            <h2>Change Username/Password</h2>
+            <form id="changeForm">
+                <input type="text" id="newUsername" placeholder="New Username" required>
+                <input type="password" id="newPassword" placeholder="New Password" required>
+                <button type="submit">Update Credentials</button>
+            </form>
+            <div id="changeMessage" class="success"></div>
+        </div>
+
+        <div class="form-section">
+            <h2>Add Transaction</h2>
+            <form id="transactionForm">
+                <input type="number" id="amount" placeholder="Enter Transaction Amount" required>
+                <button type="submit">Add Transaction</button>
+            </form>
+            <div id="transactionMessage" class="success"></div>
+        </div>
+
+        <h2>Transaction History</h2>
+        <table id="transactionTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Transaction Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="empty" id="emptyMessage">No transactions yet.</div>
+    </div>
+
+    <script>
+        const changeForm = document.getElementById('changeForm');
+        const transactionForm = document.getElementById('transactionForm');
+        const transactionTableBody = document.querySelector('#transactionTable tbody');
+        const emptyMessage = document.getElementById('emptyMessage');
+        const changeMessage = document.getElementById('changeMessage');
+        const transactionMessage = document.getElementById('transactionMessage');
+
+        let username = localStorage.getItem('username') || 'Default User';
+        let password = localStorage.getItem('password') || 'password';
+        const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        function updateTable() {
+            transactionTableBody.innerHTML = '';
+            if (transactions.length === 0) {
+                emptyMessage.style.display = 'block';
+            } else {
+                emptyMessage.style.display = 'none';
+                transactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${transaction.username}</td>
+                        <td>$${transaction.amount.toFixed(2)}</td>
+                    `;
+                    transactionTableBody.appendChild(row);
+                });
+            }
+        }
+
+        changeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const newUsername = document.getElementById('newUsername').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            if (!newUsername || !newPassword) {
+                changeMessage.innerText = 'Please fill out both fields.';
+                changeMessage.className = 'error';
+                return;
+            }
+
+            username = newUsername;
+            password = newPassword;
+            localStorage.setItem('username', username);
+            localStorage.setItem('password', password);
+
+            changeMessage.innerText = 'Credentials updated successfully!';
+            changeMessage.className = 'success';
+            changeForm.reset();
+        });
+
+        transactionForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (isNaN(amount) || amount <= 0) {
+                transactionMessage.innerText = 'Please enter a valid amount.';
+                transactionMessage.className = 'error';
+                return;
+            }
+
+            const transaction = { username, amount };
+            transactions.push(transaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            transactionMessage.innerText = 'Transaction added successfully!';
+            transactionMessage.className = 'success';
+            transactionForm.reset();
+            updateTable();
+        });
+
+        // Initialize table on load
+        updateTable();
+    </script>
+</body>
+</html>
